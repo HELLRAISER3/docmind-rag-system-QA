@@ -1,12 +1,22 @@
 from src.components.parse import Parse
 from src.components.chunk import Chunk
+from src.components.embed import Embed
+from src.config.configuration import ConfigurationManager
 
 
-parser = Parse("data", clean_metadata=True)
+configuration_manager = ConfigurationManager()
+qdrant_config = configuration_manager.get_qdrant_config()
+parse_config = configuration_manager.get_parse_config()
+chunk_config = configuration_manager.get_chunk_config()
+embed_config = configuration_manager.get_embed_config()
+
+parser = Parse(parse_config["file_folder"], 
+               parse_config["clean_metadata"])
 docs = parser.parse_docs()
 
 
-chunker = Chunk(chunk_size=1000, chunk_overlap=200)
+chunker = Chunk(chunk_size=chunk_config["chunk_size"], 
+                chunk_overlap=chunk_config["chunk_overlap"])
 chunks = chunker.chunk_docs(docs)
 
-print(chunks[:2])
+embeder = Embed()

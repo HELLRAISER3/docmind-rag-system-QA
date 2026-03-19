@@ -4,3 +4,4 @@ qdrant_client
 sentence-transformers
 ragas
 fastapi
+PyYAML
