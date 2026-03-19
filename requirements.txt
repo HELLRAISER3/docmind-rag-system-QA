@@ -1,0 +1,6 @@
+langchain
+pymupdf
+qdrant_client 
+sentence-transformers
+ragas
+fastapi
