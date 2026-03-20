@@ -1,52 +1,36 @@
-from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
-from sentence_transformers import SentenceTransformer
+from src.components.shared import get_qdrant_client, get_embedding_model
+
 
 class Embed:
-    def __init__(self, 
-                 model_ckpt:str, 
-                 vector_dim:int, 
-                 qdrant_url:str, 
-                 qdrant_port:int, 
-                 qdrant_collection_name:str):
-        self.model_ckpt = model_ckpt
-        self.vector_dim = vector_dim
-        self.qdrant_url = qdrant_url
-        self.qdrant_port = qdrant_port
-        self.qdrant_collection_name = qdrant_collection_name
+    def __init__(self, model_ckpt, vector_dim, qdrant_url, qdrant_port, collection_name):
+        self.collection_name = collection_name
+        self.client = get_qdrant_client(qdrant_url, qdrant_port)  
+        self.model  = get_embedding_model(model_ckpt)              
 
-        self.client = QdrantClient(qdrant_url, port=qdrant_port)
-        self.model = SentenceTransformer(model_ckpt)
-
-        vectors_args = VectorParams(size=vector_dim,
-                                   distance=Distance.COSINE)
-        
-        self.client.recreate_collection(
-            collection_name=qdrant_collection_name,
-            vectors_config=vectors_args
-        )
+        if not self.client.collection_exists(collection_name):
+            self.client.create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(size=vector_dim, distance=Distance.COSINE)
+            )
 
     def embed_chunks(self, chunks):
-        vectors = self.model.encode(chunks)
+        texts   = [c["text"] for c in chunks]
+        vectors = self.model.encode(texts, show_progress_bar=True)
 
         points = [
             PointStruct(
                 id=idx,
                 vector=vector.tolist(),
                 payload={
-                    "text":        chunk["text"],
-                    "source":      chunk["metadata"]["source"],
-                    "page":        chunk["metadata"]["page"],
+                    "text": chunk["text"],
+                    "source": chunk["metadata"]["source"],
+                    "page": chunk["metadata"]["page"],
                     "chunk_index": chunk["metadata"]["chunk_index"],
                 }
             )
             for idx, (chunk, vector) in enumerate(zip(chunks, vectors))
         ]
 
-        self.client.upsert(collection_name=self.qdrant_collection_name,
-                           points=points)
-    
+        self.client.upsert(collection_name=self.collection_name, points=points)
         return points
-        
-
-

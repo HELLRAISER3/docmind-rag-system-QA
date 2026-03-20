@@ -5,3 +5,6 @@ sentence-transformers
 ragas
 fastapi
 PyYAML
+accelerate
+bitsandbytes
+huggingface-hub

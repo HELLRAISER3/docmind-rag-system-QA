@@ -1,21 +1,17 @@
 from src.components.parse import Parse
 from src.components.chunk import Chunk
 from src.components.embed import Embed
-from src.components.retrieve import Retrieve
 from src.config.configuration import ConfigurationManager
-
 
 configuration_manager = ConfigurationManager()
 qdrant_config = configuration_manager.get_qdrant_config()
 parse_config = configuration_manager.get_parse_config()
 chunk_config = configuration_manager.get_chunk_config()
 embed_config = configuration_manager.get_embed_config()
-retrieve_config = configuration_manager.get_retrieve_config()
 
 parser = Parse(parse_config.file_folder, 
                parse_config.clean_metadata)
 docs = parser.parse_docs()
-
 
 chunker = Chunk(chunk_size=chunk_config.chunk_size, 
                 chunk_overlap=chunk_config.chunk_overlap)
@@ -26,16 +22,5 @@ embeder = Embed(model_ckpt=embed_config.embedding_model_ckpt,
                 qdrant_url=qdrant_config.url,
                 qdrant_port=qdrant_config.port,
                 collection_name=qdrant_config.collection_name)
-points = embeder.embed_chunks(chunks)
+embeder.embed_chunks(chunks)
 
-
-user_query = """What was the BLEU score the Transformer could achieved  on the 
- English-to-German and English-to-French newstest2014 test?
-"""
-
-retriver = Retrieve(collection_name=qdrant_config.collection_name,
-                    top_k=retrieve_config.top_k,
-                    threshold_score=retrieve_config.threshold_score)
-
-query_points = retriver.retrieve(user_query)
-print(query_points[0])

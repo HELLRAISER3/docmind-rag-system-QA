@@ -1,6 +1,6 @@
 from src.constants import *
 from src.utils.common import read_yaml
-from src.entity import QdrantConfig, ChunkConfig, ParseConfig, EmbedConfig
+from src.entity import QdrantConfig, ChunkConfig, ParseConfig, EmbedConfig, RetrieveConfig, GenerateConfig
 from src.logging import logger
 
 class ConfigurationManager:
@@ -47,8 +47,32 @@ class ConfigurationManager:
         config = self.config["embed_config"]
 
         embed_config = EmbedConfig(
+            local_model_path=Path(config["local_model_path"]),
             embedding_model_ckpt=config["embedding_model_ckpt"],
             vector_dim=config["vector_dim"]
         )
 
         return embed_config
+    
+    def get_retrieve_config(self) -> RetrieveConfig:
+        config = self.config["retrieve_config"]
+
+        retrieve_config = RetrieveConfig(
+            top_k=config["top_k"],
+            threshold_score=config["threshold_score"]
+        )
+
+        return retrieve_config
+
+    def get_generate_config(self) -> GenerateConfig:
+        config = self.config["generate_config"]
+
+        generate_config = GenerateConfig(
+            system_prompt=config["system_prompt"],
+            temperature=config["temperature"],
+            max_new_tokens=config["max_new_tokens"],
+            model_ckpt=config["model_ckpt"]
+        )
+
+        return generate_config
+    
