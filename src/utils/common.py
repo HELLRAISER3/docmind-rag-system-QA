@@ -1,6 +1,6 @@
 from src.logging import logger
 import yaml
-from urllib import Path
+from pathlib import Path
 
 
 def read_yaml(path_to_yaml: Path):

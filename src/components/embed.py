@@ -26,8 +26,8 @@ class Embed:
             vectors_config=vectors_args
         )
 
-    def embed_docs(self, docs):
-        vectors = self.model.encode(docs)
+    def embed_chunks(self, chunks):
+        vectors = self.model.encode(chunks)
 
         points = [
             PointStruct(
@@ -40,11 +40,13 @@ class Embed:
                     "chunk_index": chunk["metadata"]["chunk_index"],
                 }
             )
-            for idx, (chunk, vector) in enumerate(zip(docs, vectors))
+            for idx, (chunk, vector) in enumerate(zip(chunks, vectors))
         ]
 
         self.client.upsert(collection_name=self.qdrant_collection_name,
                            points=points)
+    
+        return points
         
 
 

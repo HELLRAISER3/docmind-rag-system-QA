@@ -1,5 +1,5 @@
 parse_config:
-  file_folder: data
+  file_folder: ./data
   clean_metadata: True
 
 chunk_config: 
