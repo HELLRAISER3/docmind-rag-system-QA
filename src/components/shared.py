@@ -4,6 +4,7 @@ from transformers import AutoModelForCausalLM
 from transformers import AutoTokenizer
 from transformers import BitsAndBytesConfig
 from src.logging import logger
+import gc
 import torch
 
 # Singletone for qdrant_client and embedding model
@@ -30,21 +31,29 @@ def get_embedding_model(model_ckpt: str) -> SentenceTransformer:
 def get_LM_model(model_ckpt: str) -> AutoModelForCausalLM:
     global _LM_model
     if _LM_model is None:
-        logger.info(f"Loading LM model: {model_ckpt}...")
-        
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16
-        )
-        
-        _LM_model = AutoModelForCausalLM.from_pretrained(
-            model_ckpt,
-            quantization_config=bnb_config,
-            device_map="auto",
-            low_cpu_mem_usage=True
-        )
+        gc.collect()
+        if torch.cuda.is_available():
+            logger.info(f"Loading LM model: {model_ckpt}...")
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16
+            )
+            _LM_model = AutoModelForCausalLM.from_pretrained(
+                model_ckpt,
+                quantization_config=bnb_config,
+                device_map="auto",
+                low_cpu_mem_usage=True
+            )
+        else:
+            logger.info(f"Loading LM model (float32, CPU): {model_ckpt}...")
+            _LM_model = AutoModelForCausalLM.from_pretrained(
+                model_ckpt,
+                dtype=torch.bfloat16,
+                device_map="cpu",
+                low_cpu_mem_usage=True,
+            )
     return _LM_model
 
 def get_LM_tokenizer(model_ckpt: str) -> AutoTokenizer:
