@@ -110,31 +110,6 @@ python -m src.pipeline.query_pipeline -q "What is X?" --collection my_collection
 
 ---
 
-## Configuration reference
-
-```yaml
-# config/config.yaml
-
-chunk_config:
-  chunk_size: 1000
-  chunk_overlap: 200
-
-embed_config:
-  embedding_model_ckpt: all-MiniLM-L6-v2
-  vector_dim: 384
-
-retrieve_config:
-  top_k: 5
-  threshold_score: 0.3    # passages below this score are dropped
-
-generate_config:  
-  model_ckpt: Qwen/Qwen2.5-0.5B-Instruct
-  temperature: 0.7
-  max_new_tokens: 512
-```
-
----
-
 ## Notes
 
 - Models are loaded once at startup via singletons in `shared.py` - first query is slow, subsequent ones are fast.
